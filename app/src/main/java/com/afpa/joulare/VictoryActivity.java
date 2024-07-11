@@ -26,10 +26,10 @@ public class VictoryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_victory);
 
         //Affichage du nom du joueur
-        TextView nomJoueur = findViewById(R.id.nameEnd);
+        TextView nomJoueur = findViewById(R.id.textView);
         Intent nom = getIntent();
         String strNom = nom.getExtras().getString("nom");
-        nomJoueur.setText(strNom);
+        nomJoueur.append(" " +strNom);
 
 
         Button retourMenu = findViewById(R.id.retourMenu);

@@ -56,10 +56,11 @@
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="594dp"
+        android:layout_height="34dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/smart"
+        android:textAlignment="center"
         android:textColor="#3EDD1A"
         android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@+id/imageHeimer"

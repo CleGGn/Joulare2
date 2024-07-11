@@ -24,7 +24,7 @@ public class GameOnActivity extends Activity {
     public final static String TAG = "GameOnActivity"; // Le TAG pour les Log
     public int WIDTH = 10; // Largeur de la grille
     public int HEIGHT = 12; // Longueur de la grill
-    public float totalMine = 20; // Le nombre total de mine que l'on veut implémenter à la base
+    public float totalMine = 2; // Le nombre total de mine que l'on veut implémenter à la base
     public float compteurMine = totalMine; // Le compteur de mine qui va se décrémenter dans le tableau
     public boolean [][] checkMine = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui positionnera les mines
     public boolean [][] checkReveal = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si une case est revelée ou non
@@ -44,7 +44,7 @@ public class GameOnActivity extends Activity {
         loadLocale();
         setContentView(R.layout.activity_gameon);
 
-        Button ff = findViewById(R.id.ff);
+        Button forfeit = findViewById(R.id.ff);
 
         // Initialisation du TIMER
         TextView timer = findViewById(R.id.timer);
@@ -211,7 +211,7 @@ public class GameOnActivity extends Activity {
                 }
             }
 
-        ff.setOnClickListener(v -> { // la fonction pour abandonner
+        forfeit.setOnClickListener(v -> { // la fonction pour abandonner
             AlertDialog.Builder builder = new AlertDialog.Builder(GameOnActivity.this);
             builder.setTitle(R.string.warning);
             builder.setMessage(R.string.quit);

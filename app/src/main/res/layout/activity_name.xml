@@ -39,20 +39,20 @@
 
     <EditText
         android:id="@+id/choiceName"
-        android:layout_width="335dp"
-        android:layout_height="46dp"
-        android:layout_marginTop="72dp"
+        android:layout_width="337dp"
+        android:layout_height="55dp"
+        android:layout_marginTop="44dp"
+        android:autofillHints="@string/emptyName"
         android:background="#D47BE3"
-        android:hint="@string/emptyName"
         android:fontFamily="@font/pixeled"
+        android:hint="@string/emptyName"
+        android:inputType="text"
         android:textAlignment="center"
         android:textSize="17sp"
         app:layout_constraintEnd_toEndOf="@+id/menu"
         app:layout_constraintHorizontal_bias="0.509"
         app:layout_constraintStart_toStartOf="@+id/menu"
-        app:layout_constraintTop_toBottomOf="@+id/menu"
-        android:autofillHints="@string/emptyName"
-        android:inputType="text"/>
+        app:layout_constraintTop_toBottomOf="@+id/menu" />
 
     <Button
         android:id="@+id/playGame"

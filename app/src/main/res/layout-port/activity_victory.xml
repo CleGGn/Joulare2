@@ -41,8 +41,8 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="175dp"
+        android:layout_height="75dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/congrats"
         android:textColor="#D47BE3"
@@ -70,42 +70,41 @@
 
     <TextView
         android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="403dp"
+        android:layout_height="85dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/smart"
+        android:textAlignment="center"
         android:textColor="#D47BE3"
         android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@+id/imageHeimer"
         app:layout_constraintEnd_toEndOf="@+id/menu"
-        app:layout_constraintHorizontal_bias="0.503"
         app:layout_constraintStart_toStartOf="@+id/menu"
         app:layout_constraintTop_toBottomOf="@+id/menu"
-        app:layout_constraintVertical_bias="0.826" />
+        app:layout_constraintVertical_bias="0.931" />
 
     <ImageView
         android:id="@+id/imageHeimer"
         android:layout_width="230dp"
         android:layout_height="197dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="156dp"
+        android:layout_marginTop="216dp"
         android:background="@drawable/heimer"
+        android:contentDescription="@string/heimer"
         android:scrollbars="vertical"
         app:layout_constraintEnd_toEndOf="@+id/menu"
         app:layout_constraintHorizontal_bias="0.504"
         app:layout_constraintStart_toStartOf="@+id/menu"
-        app:layout_constraintTop_toBottomOf="@+id/menu"
-        android:contentDescription="@string/heimer" />
+        app:layout_constraintTop_toBottomOf="@+id/menu" />
 
     <Button
         android:id="@+id/retourMenu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="376dp"
+        android:layout_marginTop="432dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/sousTitreMenu"
         app:layout_constraintEnd_toEndOf="@+id/menu"
-        app:layout_constraintHorizontal_bias="0.476"
         app:layout_constraintStart_toStartOf="@+id/menu"
         app:layout_constraintTop_toBottomOf="@+id/menu" />
 

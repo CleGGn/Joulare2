@@ -40,8 +40,8 @@
 
     <Button
         android:id="@+id/play"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_marginTop="52dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/unJoueurMenu"
@@ -51,8 +51,8 @@
 
     <Button
         android:id="@+id/resume"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_marginTop="132dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/resume"
@@ -63,8 +63,8 @@
 
     <Button
         android:id="@+id/rank"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_marginTop="212dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/classementMenu"
@@ -75,8 +75,8 @@
 
     <Button
         android:id="@+id/option"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_marginTop="292dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/optionMenu"
@@ -87,8 +87,8 @@
 
     <Button
         android:id="@+id/exit"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_marginTop="376dp"
         android:fontFamily="@font/pixeled"
         android:text="@string/exitMenu"
