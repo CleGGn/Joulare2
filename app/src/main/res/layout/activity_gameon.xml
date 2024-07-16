@@ -25,8 +25,8 @@
 
     <TextView
         android:id="@+id/timer"
-        android:layout_width="88dp"
-        android:layout_height="61dp"
+        android:layout_width="120dp"
+        android:layout_height="62dp"
         android:fontFamily="@font/pixeled"
         android:textColor="#D47BE3"
         android:textSize="20sp"

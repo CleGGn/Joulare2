@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class GameOnActivity extends Activity {
 
@@ -33,19 +34,30 @@ public class GameOnActivity extends Activity {
     boolean revealed = false; // Booléen de case retournée ou non
     boolean flagged = false; // Booléen utilisé pour les multiples clics long
 
+    // On determine ici l'aspect de la case lorqu'elle sera cliquée
+    String emptyCell = "@drawable/emptycell";
+    String mineCell = "@drawable/trex";
+    String cell1 = "@drawable/n1";
+    String cell2 = "@drawable/n2";
+    String cell3 = "@drawable/n3";
+    String cell4 = "@drawable/n4";
+    String cell5 = "@drawable/n5";
+    String cell6 = "@drawable/n6";
+    String cell7 = "@drawable/n7";
+    String cell8 = "@drawable/n8";
 
-
-    @SuppressLint("UseCompatLoadingForDrawables")
+    @SuppressLint({"UseCompatLoadingForDrawables", "DiscouragedApi"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        // Charge la langue par défaut
         loadLocale();
+        // charge l'affichage
         setContentView(R.layout.activity_gameon);
-
+        // Boutons
         Button forfeit = findViewById(R.id.ff);
-
         // Initialisation du TIMER
         TextView timer = findViewById(R.id.timer);
         CountDownTimer timeScore = new CountDownTimer(8 * 60000, 1000) {
@@ -62,43 +74,33 @@ public class GameOnActivity extends Activity {
         //Affichage du nom du joueur
         TextView nomJoueur = findViewById(R.id.nomJoueur);
         Intent nom = getIntent();
-        String strNom = nom.getExtras().getString("nom");
+        String strNom = Objects.requireNonNull(nom.getExtras()).getString("nom");
         nomJoueur.setText(strNom);
 
         // TextView flags = findViewById(R.id.flags);
 
-
-        //Tableau de booléen qui determine aléatoirement si une case sera minée ou non.
+        // Tableau de booléen qui determine aléatoirement si une case sera minée ou non.
         while (compteurMine != 0) {
             for (int i = 0; i < HEIGHT; i++) {
+                // On determine ici la manière dont seront réparties les bombes en fonction de la taille de la grille (actuellement 16% de chances d'être une mine)
                 float distribution = totalMine / (WIDTH * HEIGHT);
                 float mult100 = Math.round(distribution * 100);
+
+                // Si toutes les mines ont été posées, on sort
                 if (compteurMine == 0){
                     break;
                 }
+
+                // On va boucler dans la grille en repartissant les bombes aléatoirement jusqu'à arriver à 0
                 for (int j = 0; j < WIDTH; j++) {
                     long random = Math.round(Math.random() * 100);
-                    /*
-                    if(checkMine[i][j] == mine){
-                        j++;
-                    }
-
-                     */
-
-                  /*  if(i == HEIGHT - 1 && j == WIDTH - 1 && compteurMine > 0){
-                        i = 0;
-                        j = 0;
-                    }
-
-                   */
-
                      if (random < mult100 && checkMine[i][j] != mine) {
                         checkMine[i][j] = mine;
                         compteurMine--;
                     } else {
                         checkMine[i][j] = !mine;
                     }
-
+                    // Si toutes les mines ont été posées, on sort
                      if (compteurMine == 0){
                          break;
                      }
@@ -143,44 +145,44 @@ public class GameOnActivity extends Activity {
 
                     mesColonnes.setOnClickListener(v -> { // la fonction onClick
                         clicCase(v);
-                        // On determine ici l'aspect de la case lorqu'elle sera cliquée
-                        String emptyCell = "@drawable/emptycell";
-                        String mineCell = "@drawable/trex";
-                        String cell1 = "@drawable/n1";
-                        String cell2 = "@drawable/n2";
-                        String cell3 = "@drawable/n3";
-                        String cell4 = "@drawable/n4";
-                        String cell5 = "@drawable/n5";
-                        String cell6 = "@drawable/n6";
-                        String cell7 = "@drawable/n7";
-                        String cell8 = "@drawable/n8";
 
+                        // On regarde si on a cliqué sur une mine ou non
                         if (verifyBoard(mesColonnes.getId())) {
                             mesColonnes.setBackground(getDrawable(getResources().getIdentifier(mineCell, null, getPackageName())));
+                            timeScore.cancel();
                             defeat();
                         } else
-                            mesColonnes.setBackground(getDrawable(getResources().getIdentifier(emptyCell, null, getPackageName())));
-
-                        if (!verifyBoard(mesColonnes.getId())) {
-                            mesColonnes.setBackground(getDrawable(getResources().getIdentifier(emptyCell, null, getPackageName())));
-                            if (distribImg(mesColonnes.getId()) == 1) {
-                                mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell1, null, getPackageName())));
-                            } else if (distribImg(mesColonnes.getId()) == 2) {
-                                mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell2, null, getPackageName())));
-                            } else if (distribImg(mesColonnes.getId()) == 3) {
-                                mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell3, null, getPackageName())));
-                            } else if (distribImg(mesColonnes.getId()) == 4) {
-                                mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell4, null, getPackageName())));
-                            } else if (distribImg(mesColonnes.getId()) == 5) {
-                                mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell5, null, getPackageName())));
-                            } else if (distribImg(mesColonnes.getId()) == 6) {
-                                mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell6, null, getPackageName())));
-                            } else if (distribImg(mesColonnes.getId()) == 7) {
-                                mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell7, null, getPackageName())));
-                            } else if (distribImg(mesColonnes.getId()) == 8) {
-                                mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell8, null, getPackageName())));
+                            switch (distribImg(mesColonnes.getId())){
+                                case 1:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell1, null, getPackageName())));
+                                    break;
+                                case 2:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell2, null, getPackageName())));
+                                    break;
+                                case 3:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell3, null, getPackageName())));
+                                    break;
+                                case 4:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell4, null, getPackageName())));
+                                    break;
+                                case 5:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell5, null, getPackageName())));
+                                    break;
+                                case 6:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell6, null, getPackageName())));
+                                    break;
+                                case 7:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell7, null, getPackageName())));
+                                    break;
+                                case 8:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell8, null, getPackageName())));
+                                    break;
+                                default:
+                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(emptyCell, null, getPackageName())));
+                                    //zoneReveal(mesColonnes.getId());
+                                    break;
                             }
-                        }
+
 
                         if(revealing(mesColonnes.getId())){
                             if(checkGameWin()){
@@ -220,6 +222,7 @@ public class GameOnActivity extends Activity {
             builder.setCancelable(true); // Si l'utilisateur clique à coté de la boite, ça annule tout
 
             builder.setPositiveButton(R.string.yes, (dialog, which) -> {
+                timeScore.cancel();
                 NameActivity.mpInGame.stop();
                 Intent intent = new Intent(GameOnActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -231,6 +234,8 @@ public class GameOnActivity extends Activity {
             alertDialog.show();
         });
     }
+
+
 
 
     /////////////////////////////////////////////////////////////////// Méthodes Applicatives //////////////////////////////////////////////////////////////////////
@@ -499,6 +504,160 @@ public class GameOnActivity extends Activity {
         });
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
+    }
+
+    private void zoneReveal(int idVue) {
+        int count = 0;
+        int i;
+        int j;
+
+        if (idVue > WIDTH) {
+            i = idVue / WIDTH;
+            j = idVue % WIDTH;
+        } else if(idVue == WIDTH){
+            i = 1;
+            j = 0;
+
+        } else {
+            i = 0;
+            j = idVue;
+        }
+
+        // Si on est pas sur une mine
+        if (!verifyBoard(idVue)) {
+            // Si on est sur le coin supérieur gauche
+            if (i==0 && j==0){
+                if(verifyBoard(idVue + 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue + WIDTH)){
+                    count++;
+                }
+                if(verifyBoard(idVue + (WIDTH + 1))){
+                    count++;
+                }
+            } else if(i==0 && j==WIDTH-1){
+                if(verifyBoard(idVue - 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue + WIDTH)){
+                    count++;
+                }
+                if(verifyBoard(idVue + (WIDTH - 1))){
+                    count++;
+                }
+            } else if (i==0){
+                if(verifyBoard(idVue + 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue - 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue + (WIDTH + 1))){
+                    count++;
+                }
+                if(verifyBoard(idVue + WIDTH)){
+                    count++;
+                }
+                if(verifyBoard(idVue + (WIDTH - 1))){
+                    count++;
+                }
+            } else if (i == HEIGHT-1 && j == 0){
+                if(verifyBoard(idVue + 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue - (WIDTH - 1))){
+                    count++;
+                }
+                if(verifyBoard(idVue - WIDTH)){
+                    count++;
+                }
+            } else if (i == HEIGHT - 1 && j == WIDTH - 1 ) {
+                if(verifyBoard(idVue - 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue - WIDTH)){
+                    count++;
+                }
+                if(verifyBoard(idVue - (WIDTH + 1))){
+                    count++;
+                }
+            } else if (i == HEIGHT - 1){
+                if(verifyBoard(idVue + 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue - 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue - (WIDTH + 1))){
+                    count++;
+                }
+                if(verifyBoard(idVue - WIDTH)){
+                    count++;
+                }
+                if(verifyBoard(idVue - (WIDTH - 1))){
+                    count++;
+                }
+            } else if (j == 0){
+                if(verifyBoard(idVue + 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue + (WIDTH + 1))){
+                    count++;
+                }
+                if(verifyBoard(idVue + WIDTH)){
+                    count++;
+                }
+                if(verifyBoard(idVue - (WIDTH - 1))){
+                    count++;
+                }
+                if(verifyBoard(idVue - WIDTH)){
+                    count++;
+                }
+            } else if ( j == WIDTH - 1){
+                if(verifyBoard(idVue - 1)){
+                    count++;
+                }
+                if(verifyBoard(idVue - (WIDTH + 1))){
+                    count++;
+                }
+                if(verifyBoard(idVue - WIDTH)){
+                    count++;
+                }
+                if(verifyBoard(idVue + WIDTH)){
+                    count++;
+                }
+                if(verifyBoard(idVue + (WIDTH - 1))){
+                    count++;
+                }
+            } else {
+                if (verifyBoard(idVue + 1)) {
+                    count++;
+                }
+                if (verifyBoard(idVue - 1)) {
+                    count++;
+                }
+                if (verifyBoard(idVue - (WIDTH + 1))) {
+                    count++;
+                }
+                if (verifyBoard(idVue - WIDTH)) {
+                    count++;
+                }
+                if (verifyBoard(idVue - (WIDTH - 1))) {
+                    count++;
+                }
+                if (verifyBoard(idVue + (WIDTH + 1))) {
+                    count++;
+                }
+                if (verifyBoard(idVue + WIDTH)) {
+                    count++;
+                }
+                if (verifyBoard(idVue + (WIDTH - 1))) {
+                    count++;
+                }
+            }
+        }
+
     }
 
     /**
