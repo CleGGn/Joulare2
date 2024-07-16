@@ -35,7 +35,7 @@ public class NameActivity  extends AppCompatActivity {
 
         playGame.setOnClickListener(v -> { // Fonction qui lance la partie sous certaines conditions
             Log.i(TAG, "clicPlay");
-            EditText nom = (EditText) findViewById(R.id.choiceName);
+            EditText nom = findViewById(R.id.choiceName);
             String strNom = nom.getText().toString();
             if(strNom.isEmpty()){
                 Toast.makeText(NameActivity.this, R.string.emptyName, Toast.LENGTH_SHORT).show();

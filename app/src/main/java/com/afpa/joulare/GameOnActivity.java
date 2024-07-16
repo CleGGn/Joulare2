@@ -24,7 +24,7 @@ public class GameOnActivity extends Activity {
     public final static String TAG = "GameOnActivity"; // Le TAG pour les Log
     public int WIDTH = 10; // Largeur de la grille
     public int HEIGHT = 12; // Longueur de la grill
-    public float totalMine = 2; // Le nombre total de mine que l'on veut implémenter à la base
+    public float totalMine = 20; // Le nombre total de mine que l'on veut implémenter à la base
     public float compteurMine = totalMine; // Le compteur de mine qui va se décrémenter dans le tableau
     public boolean [][] checkMine = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui positionnera les mines
     public boolean [][] checkReveal = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si une case est revelée ou non
@@ -48,7 +48,7 @@ public class GameOnActivity extends Activity {
 
         // Initialisation du TIMER
         TextView timer = findViewById(R.id.timer);
-        new CountDownTimer(8 * 60000, 1000) {
+        CountDownTimer timeScore = new CountDownTimer(8 * 60000, 1000) {
             @SuppressLint("SimpleDateFormat")
             public void onTick(long millisUntilFinished) {
                 timer.setText(new SimpleDateFormat("mm:ss").format(new Date(millisUntilFinished)));
@@ -92,7 +92,7 @@ public class GameOnActivity extends Activity {
 
                    */
 
-                     if (random < mult100) {
+                     if (random < mult100 && checkMine[i][j] != mine) {
                         checkMine[i][j] = mine;
                         compteurMine--;
                     } else {
@@ -184,6 +184,7 @@ public class GameOnActivity extends Activity {
 
                         if(revealing(mesColonnes.getId())){
                             if(checkGameWin()){
+                                timeScore.cancel();
                                 NameActivity.mpInGame.stop();
                                 Intent intent = new Intent(GameOnActivity.this, VictoryActivity.class);
                                 intent.putExtra("nom", strNom);

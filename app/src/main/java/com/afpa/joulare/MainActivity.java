@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
@@ -20,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
     public final static String Mes_Prefs = "Mes_Prefs"; // Ref fichier préférences
     public final static String TAG = "MainActivity"; // Le TAG pour les Log
+    public static MediaPlayer mpInGame = new MediaPlayer();
 
 
     @Override
@@ -35,9 +37,13 @@ public class MainActivity extends AppCompatActivity {
         Button options = findViewById(R.id.option);
         Button exit = findViewById(R.id.exit);
 
+        mpInGame = MediaPlayer.create(getBaseContext(),R.raw.joulare);
+        mpInGame.start();
+
         play.setOnClickListener(v -> { // Fonction qui lance une nouvelle partie
             Log.i(TAG, "clicPlay");
             Intent intent = new Intent(MainActivity.this, NameActivity.class);
+            mpInGame.stop();
             startActivity(intent);
         });
 
@@ -68,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mpInGame.start();
     }
 
     /////////////////////////////////////////////////////////////////// Méthodes Applicatives //////////////////////////////////////////////////////////////////////
