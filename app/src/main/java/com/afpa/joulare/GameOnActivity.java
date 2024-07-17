@@ -26,10 +26,9 @@ public class GameOnActivity extends Activity {
     public int HEIGHT = 12; // Longueur de la grille
     public float totalMine = 20; // Le nombre total de mine que l'on veut implémenter à la base
     public float compteurMine = totalMine; // Le compteur de mine qui va se décrémenter dans le tableau
-    public boolean firstClick = false; // On tag le premier click sur la grille pour qu'il ne soit jamais une bombe
-    public boolean [][] checkMine = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui positionnera les mines
-    public boolean [][] checkReveal = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si une case est revelée ou non
-    public boolean [][] checkFlag = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si à un drpeau ou non
+    public boolean [][] tabMine = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui positionnera les mines
+    public boolean [][] tabRevealed = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si une case est revelée ou non
+    public boolean [][] tabFlag = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si à un drpeau ou non
     public boolean mine = true; // Booléen de case minée ou non
     public boolean revealed = false; // Booléen de case retournée ou non
     public boolean flagged = false; // Booléen utilisé pour les multiples clics long
@@ -64,10 +63,11 @@ public class GameOnActivity extends Activity {
         loadLocale();
         // charge l'affichage
         setContentView(R.layout.activity_gameon);
-        // Boutons
         forfeit = findViewById(R.id.ff);
-        // Initialisation du TIMER
+        grid = findViewById(R.id.grille);
         timer = findViewById(R.id.timer);
+
+        // Initialisation du TIMER
         timeScore = new CountDownTimer(8 * 60000, 1000) {
             @SuppressLint("SimpleDateFormat")
             public void onTick(long millisUntilFinished) {
@@ -91,9 +91,6 @@ public class GameOnActivity extends Activity {
         // Synchronize flagged tiles
         checkTileFlag();
 
-        //Affichage de la grille
-        grid = findViewById(R.id.grille);
-
         // Remplissage de la grille
         // Lignes
         for (int i = 0; i < HEIGHT; i++) {
@@ -112,7 +109,7 @@ public class GameOnActivity extends Activity {
                 line.addView(column, columnParams);
 
                 // Actions on click
-                clickTile(column, timeScore);
+                clickTile(column, timeScore, line);
 
                 // Actions on long clicks
                 longClickTile(column);
@@ -169,24 +166,34 @@ public class GameOnActivity extends Activity {
         });
     }
 
+    /**
+     * Actions on long clicks
+     * @param colonne , current tile
+     */
     private void longClickTile(LinearLayout colonne) {
         String flagged = "@drawable/flaggedcell";
         String unflagged = "@drawable/emptycell";
 
         colonne.setOnLongClickListener(v -> { // la fonction onLongClick
-            if(isFlagged(colonne.getId()) && revealing(colonne.getId())) {
+            if(isFlagged(colonne.getId()) && isRevealed(colonne.getId())) {
                 colonne.setBackground(getDrawable(getResources().getIdentifier(flagged, null, getPackageName())));
                 return true;
-            } else if (isFlagged(colonne.getId()) && !revealing(colonne.getId())){
+            } else if (isFlagged(colonne.getId()) && !isRevealed(colonne.getId())){
                 return false;
-            } else if (!isFlagged(colonne.getId()) && revealing(colonne.getId())) {
+            } else if (!isFlagged(colonne.getId()) && isRevealed(colonne.getId())) {
                 colonne.setBackground(getDrawable(getResources().getIdentifier(unflagged, null, getPackageName())));
             } else return false;
             return true;
         });
     }
 
-    private void clickTile(LinearLayout colonne, CountDownTimer timeScore) {
+    /**
+     * Actions on clicks
+     * @param colonne   , current tile
+     * @param timeScore , current timer
+     * @param line
+     */
+    private void clickTile(LinearLayout colonne, CountDownTimer timeScore, LinearLayout line) {
         // Local variables
         String emptyCell    = "@drawable/emptycell";
         String mineCell     = "@drawable/trex";
@@ -201,8 +208,9 @@ public class GameOnActivity extends Activity {
 
         // la fonction onClick
         colonne.setOnClickListener(v -> {
+
             // On regarde si on a cliqué sur une mine ou non
-            if (verifyBoard(colonne.getId())) {
+            if (isMined(colonne.getId())) {
                 colonne.setBackground(getDrawable(getResources().getIdentifier(mineCell, null, getPackageName())));
                 timeScore.cancel();
                 defeat();
@@ -239,7 +247,7 @@ public class GameOnActivity extends Activity {
                 }
             }
 
-            if(revealing(colonne.getId())){
+            if(isRevealed(colonne.getId())){
                 if(checkGameWin()){
                     timeScore.cancel();
                     NameActivity.mpInGame.stop();
@@ -254,22 +262,26 @@ public class GameOnActivity extends Activity {
     }
 
 
+    /**
+     * @param idVue, id of the tile
+     * @return
+     */
     private boolean isFlagged(int idVue) {
         int i;
         int j;
         if (idVue > WIDTH) {
             i = idVue / WIDTH;
             j = idVue % WIDTH;
-        } else if(idVue == WIDTH){
+        } else if (idVue == WIDTH){
             i = 1;
             j = 0;
-        } else{
+        } else {
             i = 0;
             j = idVue;
         }
 
-        if (checkFlag[i][j] == flagged){
-            checkFlag[i][j] = !flagged;
+        if (tabFlag[i][j] == flagged){
+            tabFlag[i][j] = !flagged;
             return true;
         }
         return false;
@@ -280,22 +292,22 @@ public class GameOnActivity extends Activity {
      * Fonction qui vérifie si la case est révélée ou non
      * @return booleén
      */
-    public boolean revealing(int idVue) {
+    public boolean isRevealed(int idVue) {
         int i, j;
 
         if (idVue > WIDTH) {
             i = idVue / WIDTH;
             j = idVue % WIDTH;
-        } else if(idVue == WIDTH){
+        } else if (idVue == WIDTH) {
             i = 1;
             j = 0;
-        } else{
+        } else {
             i = 0;
             j = idVue;
         }
 
-        if (checkReveal[i][j] == revealed){
-            checkReveal[i][j] = !revealed;
+        if (tabRevealed[i][j] == revealed){
+            tabRevealed[i][j] = !revealed;
             return true;
         }
         return false;
@@ -307,7 +319,7 @@ public class GameOnActivity extends Activity {
     public boolean checkGameWin() {
         for (int i = 1; i < HEIGHT; i++) {
             for (int j = 1; j < WIDTH; j++) {
-                if (checkMine[i][j] == !mine  && checkReveal[i][j] == revealed) {
+                if (tabMine[i][j] == !mine  && tabRevealed[i][j] == revealed) {
                     return false;
                 }
             }
@@ -319,21 +331,22 @@ public class GameOnActivity extends Activity {
      * Fonction qui parcours le tableau et retourne true pour les cases minés
      * @param idVue l'ID de la case
      */
-    private boolean verifyBoard(int idVue) {
-        int i;
-        int j;
+    private boolean isMined(int idVue) {
+        int i, j;
+
         if (idVue > WIDTH) {
             i = idVue / WIDTH;
             j = idVue % WIDTH;
-            return checkMine[i][j];
+            return tabMine[i][j];
+
         } else if(idVue == WIDTH){
             i = 1;
             j = 0;
-            return checkMine[i][j];
-        } else{
+            return tabMine[i][j];
+        } else {
             i = 0;
             j = idVue;
-            return checkMine[i][j];
+            return tabMine[i][j];
         }
     }
 
@@ -353,13 +366,13 @@ public class GameOnActivity extends Activity {
                 // On va boucler dans la grille en repartissant les bombes aléatoirement jusqu'à arriver à 0
                 for (int j = 0; j < WIDTH; j++) {
                     long random = Math.round(Math.random() * 100);
-                    if (random < mult100 && checkMine[i][j] != mine) {
-                        checkMine[i][j] = mine;
+                    if (random < mult100 && tabMine[i][j] != mine) {
+                        tabMine[i][j] = mine;
                         compteurMine--;
                         Log.i(TAG, "nb mines : " + compteurMine + "x: " + i + ", y: " + j);
                     } else {
-                        if (checkMine[i][j] != mine) {
-                            checkMine[i][j] = !mine;
+                        if (tabMine[i][j] != mine) {
+                            tabMine[i][j] = !mine;
                         }
                     }
 
@@ -393,134 +406,134 @@ public class GameOnActivity extends Activity {
             j = idVue;
         }
 
-        if (!verifyBoard(idVue)) {
+        if (!isMined(idVue)) {
             if (i==0 && j==0){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH + 1))){
+                if(isMined(idVue + (WIDTH + 1))){
                     count++;
                 }
             } else if(i==0 && j==WIDTH-1){
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH - 1))){
+                if(isMined(idVue + (WIDTH - 1))){
                     count++;
                 }
             } else if (i==0){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH + 1))){
+                if(isMined(idVue + (WIDTH + 1))){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH - 1))){
+                if(isMined(idVue + (WIDTH - 1))){
                     count++;
                 }
             } else if (i == HEIGHT-1 && j == 0){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH - 1))){
+                if(isMined(idVue - (WIDTH - 1))){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
             } else if (i == HEIGHT - 1 && j == WIDTH - 1 ) {
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH + 1))){
+                if(isMined(idVue - (WIDTH + 1))){
                     count++;
                 }
             } else if (i == HEIGHT - 1){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH + 1))){
+                if(isMined(idVue - (WIDTH + 1))){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH - 1))){
+                if(isMined(idVue - (WIDTH - 1))){
                     count++;
                 }
             } else if (j == 0){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH + 1))){
+                if(isMined(idVue + (WIDTH + 1))){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH - 1))){
+                if(isMined(idVue - (WIDTH - 1))){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
             } else if ( j == WIDTH - 1){
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH + 1))){
+                if(isMined(idVue - (WIDTH + 1))){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH - 1))){
+                if(isMined(idVue + (WIDTH - 1))){
                     count++;
                 }
             } else {
-                if (verifyBoard(idVue + 1)) {
+                if (isMined(idVue + 1)) {
                     count++;
                 }
-                if (verifyBoard(idVue - 1)) {
+                if (isMined(idVue - 1)) {
                     count++;
                 }
-                if (verifyBoard(idVue - (WIDTH + 1))) {
+                if (isMined(idVue - (WIDTH + 1))) {
                     count++;
                 }
-                if (verifyBoard(idVue - WIDTH)) {
+                if (isMined(idVue - WIDTH)) {
                     count++;
                 }
-                if (verifyBoard(idVue - (WIDTH - 1))) {
+                if (isMined(idVue - (WIDTH - 1))) {
                     count++;
                 }
-                if (verifyBoard(idVue + (WIDTH + 1))) {
+                if (isMined(idVue + (WIDTH + 1))) {
                     count++;
                 }
-                if (verifyBoard(idVue + WIDTH)) {
+                if (isMined(idVue + WIDTH)) {
                     count++;
                 }
-                if (verifyBoard(idVue + (WIDTH - 1))) {
+                if (isMined(idVue + (WIDTH - 1))) {
                     count++;
                 }
             }
@@ -564,135 +577,135 @@ public class GameOnActivity extends Activity {
         }
 
         // Si on est pas sur une mine
-        if (!verifyBoard(idVue)) {
+        if (!isMined(idVue)) {
             // Si on est sur le coin supérieur gauche
             if (i==0 && j==0){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH + 1))){
+                if(isMined(idVue + (WIDTH + 1))){
                     count++;
                 }
             } else if(i==0 && j==WIDTH-1){
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH - 1))){
+                if(isMined(idVue + (WIDTH - 1))){
                     count++;
                 }
             } else if (i==0){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH + 1))){
+                if(isMined(idVue + (WIDTH + 1))){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH - 1))){
+                if(isMined(idVue + (WIDTH - 1))){
                     count++;
                 }
             } else if (i == HEIGHT-1 && j == 0){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH - 1))){
+                if(isMined(idVue - (WIDTH - 1))){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
             } else if (i == HEIGHT - 1 && j == WIDTH - 1 ) {
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH + 1))){
+                if(isMined(idVue - (WIDTH + 1))){
                     count++;
                 }
             } else if (i == HEIGHT - 1){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH + 1))){
+                if(isMined(idVue - (WIDTH + 1))){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH - 1))){
+                if(isMined(idVue - (WIDTH - 1))){
                     count++;
                 }
             } else if (j == 0){
-                if(verifyBoard(idVue + 1)){
+                if(isMined(idVue + 1)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH + 1))){
+                if(isMined(idVue + (WIDTH + 1))){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH - 1))){
+                if(isMined(idVue - (WIDTH - 1))){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
             } else if ( j == WIDTH - 1){
-                if(verifyBoard(idVue - 1)){
+                if(isMined(idVue - 1)){
                     count++;
                 }
-                if(verifyBoard(idVue - (WIDTH + 1))){
+                if(isMined(idVue - (WIDTH + 1))){
                     count++;
                 }
-                if(verifyBoard(idVue - WIDTH)){
+                if(isMined(idVue - WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + WIDTH)){
+                if(isMined(idVue + WIDTH)){
                     count++;
                 }
-                if(verifyBoard(idVue + (WIDTH - 1))){
+                if(isMined(idVue + (WIDTH - 1))){
                     count++;
                 }
             } else {
-                if (verifyBoard(idVue + 1)) {
+                if (isMined(idVue + 1)) {
                     count++;
                 }
-                if (verifyBoard(idVue - 1)) {
+                if (isMined(idVue - 1)) {
                     count++;
                 }
-                if (verifyBoard(idVue - (WIDTH + 1))) {
+                if (isMined(idVue - (WIDTH + 1))) {
                     count++;
                 }
-                if (verifyBoard(idVue - WIDTH)) {
+                if (isMined(idVue - WIDTH)) {
                     count++;
                 }
-                if (verifyBoard(idVue - (WIDTH - 1))) {
+                if (isMined(idVue - (WIDTH - 1))) {
                     count++;
                 }
-                if (verifyBoard(idVue + (WIDTH + 1))) {
+                if (isMined(idVue + (WIDTH + 1))) {
                     count++;
                 }
-                if (verifyBoard(idVue + WIDTH)) {
+                if (isMined(idVue + WIDTH)) {
                     count++;
                 }
-                if (verifyBoard(idVue + (WIDTH - 1))) {
+                if (isMined(idVue + (WIDTH - 1))) {
                     count++;
                 }
             }
@@ -729,7 +742,7 @@ public class GameOnActivity extends Activity {
         //Tableau de booléen qui determine si les cases sont révélées ou non
         for (int k = 0; k < HEIGHT; k++) {
             for (int l = 0; l < WIDTH; l++) {
-                checkReveal[k][l] = revealed;
+                tabRevealed[k][l] = revealed;
             }
         }
     }
@@ -738,7 +751,7 @@ public class GameOnActivity extends Activity {
         //Tableau de booléen qui determine si les cases ont un drapeau ou non
         for (int k = 0; k < HEIGHT; k++) {
             for (int l = 0; l < WIDTH; l++) {
-                checkFlag[k][l] = flagged;
+                tabFlag[k][l] = flagged;
             }
         }
     }
