@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -16,7 +15,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
@@ -25,7 +23,7 @@ public class GameOnActivity extends Activity {
 
     public final static String TAG = "GameOnActivity"; // Le TAG pour les Log
     public int WIDTH = 10; // Largeur de la grille
-    public int HEIGHT = 12; // Longueur de la grill
+    public int HEIGHT = 12; // Longueur de la grille
     public float totalMine = 20; // Le nombre total de mine que l'on veut implémenter à la base
     public float compteurMine = totalMine; // Le compteur de mine qui va se décrémenter dans le tableau
     public boolean firstClick = false; // On tag le premier click sur la grille pour qu'il ne soit jamais une bombe
@@ -35,21 +33,28 @@ public class GameOnActivity extends Activity {
     public boolean mine = true; // Booléen de case minée ou non
     public boolean revealed = false; // Booléen de case retournée ou non
     public boolean flagged = false; // Booléen utilisé pour les multiples clics long
-    public int count = -1;
+    public int count = 0;
+    public String playerName;
     // On determine ici l'aspect de la case lorqu'elle sera cliquée
     public String imgName = "@drawable/cell";
-    public String emptyCell = "@drawable/emptycell";
-    public String mineCell = "@drawable/trex";
-    public String cell1 = "@drawable/n1";
-    public String cell2 = "@drawable/n2";
-    public String cell3 = "@drawable/n3";
-    public String cell4 = "@drawable/n4";
-    public String cell5 = "@drawable/n5";
-    public String cell6 = "@drawable/n6";
-    public String cell7 = "@drawable/n7";
-    public String cell8 = "@drawable/n8";
 
-    @SuppressLint({"UseCompatLoadingForDrawables", "DiscouragedApi"})
+    public LinearLayout grid;
+
+    public Button forfeit;
+    public TextView timer;
+
+    // Timer
+    public CountDownTimer timeScore;
+
+    // Lignes et colonnes
+    public LinearLayout line;
+    public LinearLayout.LayoutParams lineParams;
+    public LinearLayout column;
+    public LinearLayout.LayoutParams columnParams;
+
+    public AlertDialog.Builder builder;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,10 +65,10 @@ public class GameOnActivity extends Activity {
         // charge l'affichage
         setContentView(R.layout.activity_gameon);
         // Boutons
-        Button forfeit = findViewById(R.id.ff);
+        forfeit = findViewById(R.id.ff);
         // Initialisation du TIMER
-        TextView timer = findViewById(R.id.timer);
-        CountDownTimer timeScore = new CountDownTimer(8 * 60000, 1000) {
+        timer = findViewById(R.id.timer);
+        timeScore = new CountDownTimer(8 * 60000, 1000) {
             @SuppressLint("SimpleDateFormat")
             public void onTick(long millisUntilFinished) {
                 timer.setText(new SimpleDateFormat("mm:ss").format(new Date(millisUntilFinished)));
@@ -74,112 +79,77 @@ public class GameOnActivity extends Activity {
             }
         }.start();
 
-        //Affichage du nom du joueur
-        TextView nomJoueur = findViewById(R.id.nomJoueur);
-        Intent nom = getIntent();
-        String strNom = Objects.requireNonNull(nom.getExtras()).getString("nom");
-        nomJoueur.setText(strNom);
-        // TextView flags = findViewById(R.id.flags);
+        // Display and return player's name
+        playerName = displayName();
 
-        // Assure la repartition des mines
+        // Randomly puts mines
         mineDistribution();
 
-        // Synchronise les cases révélées
+        // Synchronize revealed tiles
         checkTileReveal();
-        // Synchronise les cases avec un drapeau
+
+        // Synchronize flagged tiles
         checkTileFlag();
 
         //Affichage de la grille
-        LinearLayout grille = findViewById(R.id.grille);
+        grid = findViewById(R.id.grille);
 
         // Remplissage de la grille
         // Lignes
         for (int i = 0; i < HEIGHT; i++) {
-            LinearLayout ligne = new LinearLayout(grille.getContext());
-            LinearLayout.LayoutParams ligneParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            ligne.setGravity(Gravity.CENTER);
-            grille.addView(ligne, ligneParams);
+            line = new LinearLayout(grid.getContext());
+            lineParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            line.setGravity(Gravity.CENTER);
+            grid.addView(line, lineParams);
             // Colonnes
             for (int j = 0; j < WIDTH; j++) {
-                LinearLayout colonne = new LinearLayout(ligne.getContext());
-                LinearLayout.LayoutParams colonneParams = new LinearLayout.LayoutParams(100, 100);
-                colonne.setGravity(Gravity.CENTER);
-                colonne.setBackground(getDrawable(getResources().getIdentifier(imgName, null, getPackageName())));
+                column = new LinearLayout(line.getContext());
+                columnParams = new LinearLayout.LayoutParams(100, 100);
+                column.setGravity(Gravity.CENTER);
+                column.setBackground(getDrawable(getResources().getIdentifier(imgName, null, getPackageName())));
+                column.setId(count);
                 count++;
-                colonne.setId(count);
-                ligne.addView(colonne, colonneParams);
+                line.addView(column, columnParams);
 
+                // Actions on click
+                clickTile(column, timeScore);
 
-                colonne.setOnClickListener(v -> { // la fonction onClick
-                    clicCase(v);
-                    // On regarde si on a cliqué sur une mine ou non
-                    if (verifyBoard(colonne.getId())) {
-                        colonne.setBackground(getDrawable(getResources().getIdentifier(mineCell, null, getPackageName())));
-                        timeScore.cancel();
-                        defeat();
-                    } else {
-                        switch (distribImg(colonne.getId())) {
-                            case 1:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell1, null, getPackageName())));
-                                break;
-                            case 2:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell2, null, getPackageName())));
-                                break;
-                            case 3:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell3, null, getPackageName())));
-                                break;
-                            case 4:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell4, null, getPackageName())));
-                                break;
-                            case 5:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell5, null, getPackageName())));
-                                break;
-                            case 6:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell6, null, getPackageName())));
-                                break;
-                            case 7:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell7, null, getPackageName())));
-                                break;
-                            case 8:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell8, null, getPackageName())));
-                                break;
-                            default:
-                                colonne.setBackground(getDrawable(getResources().getIdentifier(emptyCell, null, getPackageName())));
-                                //zoneReveal(mesColonnes.getId());
-                                break;
-                        }
-                    }
-                    if(revealing(colonne.getId())){
-                        if(checkGameWin()){
-                            timeScore.cancel();
-                            NameActivity.mpInGame.stop();
-                            Intent intent = new Intent(GameOnActivity.this, VictoryActivity.class);
-                            intent.putExtra("nom", strNom);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(intent);
-                        }
-                        Log.i(TAG, "victoire ? " + checkGameWin());
-                    }
-                });
-
-                colonne.setOnLongClickListener(v -> { // la fonction onLongClick
-                    if(isFlagged(colonne.getId()) && revealing(colonne.getId())) {
-                        String flagged = "@drawable/flaggedcell";
-                        colonne.setBackground(getDrawable(getResources().getIdentifier(flagged, null, getPackageName())));
-                        return true;
-                    } else if (isFlagged(colonne.getId()) && !revealing(colonne.getId())){
-                        return false;
-                    } else if (!isFlagged(colonne.getId()) && revealing(colonne.getId())) {
-                        String unflagged = "@drawable/emptycell";
-                        colonne.setBackground(getDrawable(getResources().getIdentifier(unflagged, null, getPackageName())));
-                    } else return false;
-                    return true;
-                });
+                // Actions on long clicks
+                longClickTile(column);
             }
         }
+        // Actions on forfeit button
+        clickForfeit();
+    }
 
+
+
+    /////////////////////////////////////////////////////////////////// Méthodes Applicatives //////////////////////////////////////////////////////////////////////
+
+    /**
+     * Display player name from intent
+     * @return player name
+     */
+    private String displayName() {
+        TextView nomJoueur;
+        Intent nom;
+        String strNom ;
+
+        //Affichage du nom du joueur
+        nomJoueur = findViewById(R.id.nomJoueur);
+        nom = getIntent();
+        strNom = Objects.requireNonNull(nom.getExtras()).getString("nom");
+        nomJoueur.setText(strNom);
+
+        return strNom;
+    }
+
+    /**
+     * Actions onclick on forfeit button
+     */
+    private void clickForfeit() {
         forfeit.setOnClickListener(v -> { // la fonction pour abandonner
-            AlertDialog.Builder builder = new AlertDialog.Builder(GameOnActivity.this);
+            builder = new AlertDialog.Builder(GameOnActivity.this);
             builder.setTitle(R.string.warning);
             builder.setMessage(R.string.quit);
 
@@ -199,19 +169,90 @@ public class GameOnActivity extends Activity {
         });
     }
 
+    private void longClickTile(LinearLayout colonne) {
+        String flagged = "@drawable/flaggedcell";
+        String unflagged = "@drawable/emptycell";
 
-
-
-    /////////////////////////////////////////////////////////////////// Méthodes Applicatives //////////////////////////////////////////////////////////////////////
-
-    /**
-     * Fonction qui affiche quelque chose au moment du clic sur la vue
-     * @param v la vue
-     */
-    private void clicCase(View v) {
-        int idVue = v.getId();
-        Log.i(TAG, "CASE : " + idVue);
+        colonne.setOnLongClickListener(v -> { // la fonction onLongClick
+            if(isFlagged(colonne.getId()) && revealing(colonne.getId())) {
+                colonne.setBackground(getDrawable(getResources().getIdentifier(flagged, null, getPackageName())));
+                return true;
+            } else if (isFlagged(colonne.getId()) && !revealing(colonne.getId())){
+                return false;
+            } else if (!isFlagged(colonne.getId()) && revealing(colonne.getId())) {
+                colonne.setBackground(getDrawable(getResources().getIdentifier(unflagged, null, getPackageName())));
+            } else return false;
+            return true;
+        });
     }
+
+    private void clickTile(LinearLayout colonne, CountDownTimer timeScore) {
+        // Local variables
+        String emptyCell    = "@drawable/emptycell";
+        String mineCell     = "@drawable/trex";
+        String cell1        = "@drawable/n1";
+        String cell2        = "@drawable/n2";
+        String cell3        = "@drawable/n3";
+        String cell4        = "@drawable/n4";
+        String cell5        = "@drawable/n5";
+        String cell6        = "@drawable/n6";
+        String cell7        = "@drawable/n7";
+        String cell8        = "@drawable/n8";
+
+        // la fonction onClick
+        colonne.setOnClickListener(v -> {
+            // On regarde si on a cliqué sur une mine ou non
+            if (verifyBoard(colonne.getId())) {
+                colonne.setBackground(getDrawable(getResources().getIdentifier(mineCell, null, getPackageName())));
+                timeScore.cancel();
+                defeat();
+            } else {
+                switch (distribImg(colonne.getId())) {
+                    case 1:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(cell1, null, getPackageName())));
+                        break;
+                    case 2:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(cell2, null, getPackageName())));
+                        break;
+                    case 3:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(cell3, null, getPackageName())));
+                        break;
+                    case 4:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(cell4, null, getPackageName())));
+                        break;
+                    case 5:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(cell5, null, getPackageName())));
+                        break;
+                    case 6:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(cell6, null, getPackageName())));
+                        break;
+                    case 7:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(cell7, null, getPackageName())));
+                        break;
+                    case 8:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(cell8, null, getPackageName())));
+                        break;
+                    default:
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(emptyCell, null, getPackageName())));
+                        //zoneReveal(mesColonnes.getId());
+                        break;
+                }
+            }
+
+            if(revealing(colonne.getId())){
+                if(checkGameWin()){
+                    timeScore.cancel();
+                    NameActivity.mpInGame.stop();
+                    Intent intent = new Intent(GameOnActivity.this, VictoryActivity.class);
+                    intent.putExtra("nom", playerName);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                }
+                Log.i(TAG, "victoire ? " + checkGameWin());
+            }
+        });
+    }
+
 
     private boolean isFlagged(int idVue) {
         int i;
@@ -240,8 +281,8 @@ public class GameOnActivity extends Activity {
      * @return booleén
      */
     public boolean revealing(int idVue) {
-        int i;
-        int j;
+        int i, j;
+
         if (idVue > WIDTH) {
             i = idVue / WIDTH;
             j = idVue % WIDTH;
