@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
@@ -27,24 +28,26 @@ public class GameOnActivity extends Activity {
     public int HEIGHT = 12; // Longueur de la grill
     public float totalMine = 20; // Le nombre total de mine que l'on veut implémenter à la base
     public float compteurMine = totalMine; // Le compteur de mine qui va se décrémenter dans le tableau
+    public boolean firstClick = false; // On tag le premier click sur la grille pour qu'il ne soit jamais une bombe
     public boolean [][] checkMine = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui positionnera les mines
     public boolean [][] checkReveal = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si une case est revelée ou non
     public boolean [][] checkFlag = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si à un drpeau ou non
-    boolean mine = true; // Booléen de case minée ou non
-    boolean revealed = false; // Booléen de case retournée ou non
-    boolean flagged = false; // Booléen utilisé pour les multiples clics long
-
+    public boolean mine = true; // Booléen de case minée ou non
+    public boolean revealed = false; // Booléen de case retournée ou non
+    public boolean flagged = false; // Booléen utilisé pour les multiples clics long
+    public int count = -1;
     // On determine ici l'aspect de la case lorqu'elle sera cliquée
-    String emptyCell = "@drawable/emptycell";
-    String mineCell = "@drawable/trex";
-    String cell1 = "@drawable/n1";
-    String cell2 = "@drawable/n2";
-    String cell3 = "@drawable/n3";
-    String cell4 = "@drawable/n4";
-    String cell5 = "@drawable/n5";
-    String cell6 = "@drawable/n6";
-    String cell7 = "@drawable/n7";
-    String cell8 = "@drawable/n8";
+    public String imgName = "@drawable/cell";
+    public String emptyCell = "@drawable/emptycell";
+    public String mineCell = "@drawable/trex";
+    public String cell1 = "@drawable/n1";
+    public String cell2 = "@drawable/n2";
+    public String cell3 = "@drawable/n3";
+    public String cell4 = "@drawable/n4";
+    public String cell5 = "@drawable/n5";
+    public String cell6 = "@drawable/n6";
+    public String cell7 = "@drawable/n7";
+    public String cell8 = "@drawable/n8";
 
     @SuppressLint({"UseCompatLoadingForDrawables", "DiscouragedApi"})
     @Override
@@ -76,143 +79,104 @@ public class GameOnActivity extends Activity {
         Intent nom = getIntent();
         String strNom = Objects.requireNonNull(nom.getExtras()).getString("nom");
         nomJoueur.setText(strNom);
-
         // TextView flags = findViewById(R.id.flags);
 
-        // Tableau de booléen qui determine aléatoirement si une case sera minée ou non.
-        while (compteurMine != 0) {
-            for (int i = 0; i < HEIGHT; i++) {
-                // On determine ici la manière dont seront réparties les bombes en fonction de la taille de la grille (actuellement 16% de chances d'être une mine)
-                float distribution = totalMine / (WIDTH * HEIGHT);
-                float mult100 = Math.round(distribution * 100);
+        // Assure la repartition des mines
+        mineDistribution();
 
-                // Si toutes les mines ont été posées, on sort
-                if (compteurMine == 0){
-                    break;
-                }
-
-                // On va boucler dans la grille en repartissant les bombes aléatoirement jusqu'à arriver à 0
-                for (int j = 0; j < WIDTH; j++) {
-                    long random = Math.round(Math.random() * 100);
-                     if (random < mult100 && checkMine[i][j] != mine) {
-                        checkMine[i][j] = mine;
-                        compteurMine--;
-                    } else {
-                        checkMine[i][j] = !mine;
-                    }
-                    // Si toutes les mines ont été posées, on sort
-                     if (compteurMine == 0){
-                         break;
-                     }
-                    Log.i(TAG, "Compteur Mine :" + compteurMine);
-                }
-            }
-        }
-
-        //Tableau de booléen qui determine si les cases sont révélées ou non
-        for (int k = 0; k < HEIGHT; k++) {
-            for (int l = 0; l < WIDTH; l++) {
-                checkReveal[k][l] = revealed;
-            }
-        }
-
-        //Tableau de booléen qui determine si les cases ont un drapeau ou non
-        for (int k = 0; k < HEIGHT; k++) {
-            for (int l = 0; l < WIDTH; l++) {
-                checkFlag[k][l] = flagged;
-            }
-        }
+        // Synchronise les cases révélées
+        checkTileReveal();
+        // Synchronise les cases avec un drapeau
+        checkTileFlag();
 
         //Affichage de la grille
-        LinearLayout monLayout = findViewById(R.id.grille);
+        LinearLayout grille = findViewById(R.id.grille);
 
-        int count = -1;
-            for (int i = 0; i < HEIGHT; i++) {
-                LinearLayout mesRangs = new LinearLayout(monLayout.getContext());
-                LinearLayout.LayoutParams linearParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                mesRangs.setGravity(Gravity.CENTER);
-                monLayout.addView(mesRangs, linearParams);
-                for (int j = 0; j < WIDTH; j++) {
-                    LinearLayout mesColonnes = new LinearLayout(mesRangs.getContext());
-                    LinearLayout.LayoutParams linearParams2 = new LinearLayout.LayoutParams(100, 100);
-                    mesColonnes.setGravity(Gravity.CENTER);
-                    String imgName = "@drawable/cell";
-                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(imgName, null, getPackageName())));
-                    mesColonnes.setGravity(Gravity.CENTER);
-                    count++;
-                    mesColonnes.setId(count);
-                    mesRangs.addView(mesColonnes, linearParams2);
-
-                    mesColonnes.setOnClickListener(v -> { // la fonction onClick
-                        clicCase(v);
-
-                        // On regarde si on a cliqué sur une mine ou non
-                        if (verifyBoard(mesColonnes.getId())) {
-                            mesColonnes.setBackground(getDrawable(getResources().getIdentifier(mineCell, null, getPackageName())));
-                            timeScore.cancel();
-                            defeat();
-                        } else
-                            switch (distribImg(mesColonnes.getId())){
-                                case 1:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell1, null, getPackageName())));
-                                    break;
-                                case 2:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell2, null, getPackageName())));
-                                    break;
-                                case 3:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell3, null, getPackageName())));
-                                    break;
-                                case 4:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell4, null, getPackageName())));
-                                    break;
-                                case 5:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell5, null, getPackageName())));
-                                    break;
-                                case 6:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell6, null, getPackageName())));
-                                    break;
-                                case 7:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell7, null, getPackageName())));
-                                    break;
-                                case 8:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(cell8, null, getPackageName())));
-                                    break;
-                                default:
-                                    mesColonnes.setBackground(getDrawable(getResources().getIdentifier(emptyCell, null, getPackageName())));
-                                    //zoneReveal(mesColonnes.getId());
-                                    break;
-                            }
+        // Remplissage de la grille
+        // Lignes
+        for (int i = 0; i < HEIGHT; i++) {
+            LinearLayout ligne = new LinearLayout(grille.getContext());
+            LinearLayout.LayoutParams ligneParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            ligne.setGravity(Gravity.CENTER);
+            grille.addView(ligne, ligneParams);
+            // Colonnes
+            for (int j = 0; j < WIDTH; j++) {
+                LinearLayout colonne = new LinearLayout(ligne.getContext());
+                LinearLayout.LayoutParams colonneParams = new LinearLayout.LayoutParams(100, 100);
+                colonne.setGravity(Gravity.CENTER);
+                colonne.setBackground(getDrawable(getResources().getIdentifier(imgName, null, getPackageName())));
+                count++;
+                colonne.setId(count);
+                ligne.addView(colonne, colonneParams);
 
 
-                        if(revealing(mesColonnes.getId())){
-                            if(checkGameWin()){
-                                timeScore.cancel();
-                                NameActivity.mpInGame.stop();
-                                Intent intent = new Intent(GameOnActivity.this, VictoryActivity.class);
-                                intent.putExtra("nom", strNom);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                startActivity(intent);
-                            }
-                            Log.i(TAG, "victoire ? " + checkGameWin());
+                colonne.setOnClickListener(v -> { // la fonction onClick
+                    clicCase(v);
+                    // On regarde si on a cliqué sur une mine ou non
+                    if (verifyBoard(colonne.getId())) {
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(mineCell, null, getPackageName())));
+                        timeScore.cancel();
+                        defeat();
+                    } else {
+                        switch (distribImg(colonne.getId())) {
+                            case 1:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell1, null, getPackageName())));
+                                break;
+                            case 2:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell2, null, getPackageName())));
+                                break;
+                            case 3:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell3, null, getPackageName())));
+                                break;
+                            case 4:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell4, null, getPackageName())));
+                                break;
+                            case 5:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell5, null, getPackageName())));
+                                break;
+                            case 6:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell6, null, getPackageName())));
+                                break;
+                            case 7:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell7, null, getPackageName())));
+                                break;
+                            case 8:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(cell8, null, getPackageName())));
+                                break;
+                            default:
+                                colonne.setBackground(getDrawable(getResources().getIdentifier(emptyCell, null, getPackageName())));
+                                //zoneReveal(mesColonnes.getId());
+                                break;
                         }
+                    }
+                    if(revealing(colonne.getId())){
+                        if(checkGameWin()){
+                            timeScore.cancel();
+                            NameActivity.mpInGame.stop();
+                            Intent intent = new Intent(GameOnActivity.this, VictoryActivity.class);
+                            intent.putExtra("nom", strNom);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
+                        }
+                        Log.i(TAG, "victoire ? " + checkGameWin());
+                    }
+                });
 
-                    });
-
-                    mesColonnes.setOnLongClickListener(v -> { // la fonction onLongClick
-                        if(isFlagged(mesColonnes.getId()) && revealing(mesColonnes.getId())) {
-                            String flagged = "@drawable/flaggedcell";
-                            mesColonnes.setBackground(getDrawable(getResources().getIdentifier(flagged, null, getPackageName())));
-                            return true;
-                        } else if (isFlagged(mesColonnes.getId()) && !revealing(mesColonnes.getId())){
-                            return false;
-                        } else if (!isFlagged(mesColonnes.getId()) && revealing(mesColonnes.getId())) {
-                            String unflagged = "@drawable/emptycell";
-                            mesColonnes.setBackground(getDrawable(getResources().getIdentifier(unflagged, null, getPackageName())));
-                        } else return false;
+                colonne.setOnLongClickListener(v -> { // la fonction onLongClick
+                    if(isFlagged(colonne.getId()) && revealing(colonne.getId())) {
+                        String flagged = "@drawable/flaggedcell";
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(flagged, null, getPackageName())));
                         return true;
-                    });
-                }
+                    } else if (isFlagged(colonne.getId()) && !revealing(colonne.getId())){
+                        return false;
+                    } else if (!isFlagged(colonne.getId()) && revealing(colonne.getId())) {
+                        String unflagged = "@drawable/emptycell";
+                        colonne.setBackground(getDrawable(getResources().getIdentifier(unflagged, null, getPackageName())));
+                    } else return false;
+                    return true;
+                });
             }
+        }
 
         forfeit.setOnClickListener(v -> { // la fonction pour abandonner
             AlertDialog.Builder builder = new AlertDialog.Builder(GameOnActivity.this);
@@ -329,6 +293,41 @@ public class GameOnActivity extends Activity {
             i = 0;
             j = idVue;
             return checkMine[i][j];
+        }
+    }
+
+    public void mineDistribution() {
+        // Tableau de booléen qui determine aléatoirement si une case sera minée ou non.
+        while (compteurMine != 0) {
+            for (int i = 0; i < HEIGHT; i++) {
+                // On determine ici la manière dont seront réparties les bombes en fonction de la taille de la grille (actuellement 16% de chances d'être une mine)
+                float distribution = totalMine / (WIDTH * HEIGHT);
+                float mult100 = Math.round(distribution * 100);
+
+                // Si toutes les mines ont été posées, on sort
+                if (compteurMine == 0){
+                    break;
+                }
+
+                // On va boucler dans la grille en repartissant les bombes aléatoirement jusqu'à arriver à 0
+                for (int j = 0; j < WIDTH; j++) {
+                    long random = Math.round(Math.random() * 100);
+                    if (random < mult100 && checkMine[i][j] != mine) {
+                        checkMine[i][j] = mine;
+                        compteurMine--;
+                        Log.i(TAG, "nb mines : " + compteurMine + "x: " + i + ", y: " + j);
+                    } else {
+                        if (checkMine[i][j] != mine) {
+                            checkMine[i][j] = !mine;
+                        }
+                    }
+
+                    // Si toutes les mines ont été posées, on sort
+                    if (compteurMine == 0){
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -683,5 +682,23 @@ public class GameOnActivity extends Activity {
         android.content.res.Configuration config = new android.content.res.Configuration();
         config.locale = myLocale;
         getBaseContext().getResources().updateConfiguration(config,getBaseContext().getResources().getDisplayMetrics());
+    }
+
+    private void checkTileReveal() {
+        //Tableau de booléen qui determine si les cases sont révélées ou non
+        for (int k = 0; k < HEIGHT; k++) {
+            for (int l = 0; l < WIDTH; l++) {
+                checkReveal[k][l] = revealed;
+            }
+        }
+    }
+
+    private void checkTileFlag() {
+        //Tableau de booléen qui determine si les cases ont un drapeau ou non
+        for (int k = 0; k < HEIGHT; k++) {
+            for (int l = 0; l < WIDTH; l++) {
+                checkFlag[k][l] = flagged;
+            }
+        }
     }
 }
