@@ -285,7 +285,6 @@ public class GameOnActivity extends Activity {
             return true;
         }
         return false;
-
     }
 
     /**
@@ -317,8 +316,8 @@ public class GameOnActivity extends Activity {
      * @return booleén
      */
     public boolean checkGameWin() {
-        for (int i = 1; i < HEIGHT; i++) {
-            for (int j = 1; j < WIDTH; j++) {
+        for (int i = 0; i < HEIGHT; i++) {
+            for (int j = 0; j < WIDTH; j++) {
                 if (tabMine[i][j] == !mine  && tabRevealed[i][j] == revealed) {
                     return false;
                 }
