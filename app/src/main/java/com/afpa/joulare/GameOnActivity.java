@@ -176,7 +176,7 @@ public class GameOnActivity extends Activity {
                 return true;
             } else if (isFlagged(colonne.getId()) && !isRevealed(colonne.getId())){
                 flag(colonne, false);
-                return false;
+                return true;
             } else return false;
         });
     }
@@ -345,13 +345,11 @@ public class GameOnActivity extends Activity {
                     if (random < mult100 && tabMine[i][j] != mine) {
                         tabMine[i][j] = mine;
                         compteurMine--;
-                        Log.i(TAG, "nb mines : " + compteurMine + "x: " + i + ", y: " + j);
                     } else {
                         if (tabMine[i][j] != mine) {
                             tabMine[i][j] = !mine;
                         }
                     }
-
                     // Si toutes les mines ont été posées, on sort
                     if (compteurMine == 0){
                         break;
