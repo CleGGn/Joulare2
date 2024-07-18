@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -30,8 +31,7 @@ public class GameOnActivity extends Activity {
     public boolean [][] tabRevealed = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si une case est revelée ou non
     public boolean [][] tabFlag = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si à un drpeau ou non
     public boolean mine = true; // Booléen de case minée ou non
-    public boolean revealed = false; // Booléen de case retournée ou non
-    public boolean flagged = false; // Booléen utilisé pour les multiples clics long
+
     public int count = 0;
     public String playerName;
     // On determine ici l'aspect de la case lorqu'elle sera cliquée
@@ -52,7 +52,6 @@ public class GameOnActivity extends Activity {
     public LinearLayout.LayoutParams columnParams;
 
     public AlertDialog.Builder builder;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,20 +170,33 @@ public class GameOnActivity extends Activity {
      * @param colonne , current tile
      */
     private void longClickTile(LinearLayout colonne) {
-        String flagged = "@drawable/flaggedcell";
-        String unflagged = "@drawable/emptycell";
-
         colonne.setOnLongClickListener(v -> { // la fonction onLongClick
-            if(isFlagged(colonne.getId()) && isRevealed(colonne.getId())) {
-                colonne.setBackground(getDrawable(getResources().getIdentifier(flagged, null, getPackageName())));
+            if(!isFlagged(colonne.getId()) && !isRevealed(colonne.getId())) {
+                flag(colonne, true);
                 return true;
             } else if (isFlagged(colonne.getId()) && !isRevealed(colonne.getId())){
+                flag(colonne, false);
                 return false;
-            } else if (!isFlagged(colonne.getId()) && isRevealed(colonne.getId())) {
-                colonne.setBackground(getDrawable(getResources().getIdentifier(unflagged, null, getPackageName())));
             } else return false;
-            return true;
         });
+    }
+
+    private void flag(LinearLayout colonne, boolean flag) {
+        String flagged = "@drawable/flaggedcell";
+        String unflagged = "@drawable/cell";
+
+        int count = 0;
+        int[] coordinates = getCoordinateFromTileID(colonne.getId());
+        int i = coordinates[0];
+        int j = coordinates[1];
+
+        if(flag){
+            colonne.setBackground(getDrawable(getResources().getIdentifier(flagged, null, getPackageName())));
+            tabFlag[i][j] = true;
+        } else {
+            colonne.setBackground(getDrawable(getResources().getIdentifier(unflagged, null, getPackageName())));
+            tabFlag[i][j] = false;
+        }
     }
 
     /**
@@ -261,30 +273,17 @@ public class GameOnActivity extends Activity {
         });
     }
 
-
     /**
      * @param idVue, id of the tile
      * @return
      */
     private boolean isFlagged(int idVue) {
-        int i;
-        int j;
-        if (idVue > WIDTH) {
-            i = idVue / WIDTH;
-            j = idVue % WIDTH;
-        } else if (idVue == WIDTH){
-            i = 1;
-            j = 0;
-        } else {
-            i = 0;
-            j = idVue;
-        }
+        int count = 0;
+        int[] coordinates = getCoordinateFromTileID(idVue);
+        int i = coordinates[0];
+        int j = coordinates[1];
 
-        if (tabFlag[i][j] == flagged){
-            tabFlag[i][j] = !flagged;
-            return true;
-        }
-        return false;
+        return tabFlag[i][j];
     }
 
     /**
@@ -292,24 +291,12 @@ public class GameOnActivity extends Activity {
      * @return booleén
      */
     public boolean isRevealed(int idVue) {
-        int i, j;
+        int count = 0;
+        int[] coordinates = getCoordinateFromTileID(idVue);
+        int i = coordinates[0];
+        int j = coordinates[1];
 
-        if (idVue > WIDTH) {
-            i = idVue / WIDTH;
-            j = idVue % WIDTH;
-        } else if (idVue == WIDTH) {
-            i = 1;
-            j = 0;
-        } else {
-            i = 0;
-            j = idVue;
-        }
-
-        if (tabRevealed[i][j] == revealed){
-            tabRevealed[i][j] = !revealed;
-            return true;
-        }
-        return false;
+        return tabRevealed[i][j];
     }
     /**
      * Fonction qui vérifie si les conditions de victoire sont respectées
@@ -318,7 +305,7 @@ public class GameOnActivity extends Activity {
     public boolean checkGameWin() {
         for (int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
-                if (tabMine[i][j] == !mine  && tabRevealed[i][j] == revealed) {
+                if (tabMine[i][j] == !mine  && tabRevealed[i][j] == false) {
                     return false;
                 }
             }
@@ -331,22 +318,12 @@ public class GameOnActivity extends Activity {
      * @param idVue l'ID de la case
      */
     private boolean isMined(int idVue) {
-        int i, j;
+        int count = 0;
+        int[] coordinates = getCoordinateFromTileID(idVue);
+        int i = coordinates[0];
+        int j = coordinates[1];
 
-        if (idVue > WIDTH) {
-            i = idVue / WIDTH;
-            j = idVue % WIDTH;
-            return tabMine[i][j];
-
-        } else if(idVue == WIDTH){
-            i = 1;
-            j = 0;
-            return tabMine[i][j];
-        } else {
-            i = 0;
-            j = idVue;
-            return tabMine[i][j];
-        }
+        return tabMine[i][j];
     }
 
     public void mineDistribution() {
@@ -391,19 +368,9 @@ public class GameOnActivity extends Activity {
      */
     public int distribImg(int idVue) {
         int count = 0;
-        int i;
-        int j;
-        if (idVue > WIDTH) {
-            i = idVue / WIDTH;
-            j = idVue % WIDTH;
-        } else if(idVue == WIDTH){
-            i = 1;
-            j = 0;
-
-        } else{
-            i = 0;
-            j = idVue;
-        }
+        int[] coordinates = getCoordinateFromTileID(idVue);
+        int i = coordinates[0];
+        int j = coordinates[1];
 
         if (!isMined(idVue)) {
             if (i==0 && j==0){
@@ -540,6 +507,27 @@ public class GameOnActivity extends Activity {
         return count;
     }
 
+    private int[] getCoordinateFromTileID(int idVue) {
+        int i, j;
+        int[] coordinates = new int[2];
+
+        if (idVue > WIDTH) {
+            i = idVue / WIDTH;
+            j = idVue % WIDTH;
+        } else if(idVue == WIDTH){
+            i = 1;
+            j = 0;
+
+        } else {
+            i = 0;
+            j = idVue;
+        }
+        coordinates[0] = i;
+        coordinates[1] = j;
+
+        return coordinates;
+    }
+
     /**
      * Fonction qui provoque un immense sentiment d'amertume et de colère, et affiche une boite d'alerte permettant de retourner au menu principal
      */
@@ -556,160 +544,6 @@ public class GameOnActivity extends Activity {
         });
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
-    }
-
-    private void zoneReveal(int idVue) {
-        int count = 0;
-        int i;
-        int j;
-
-        if (idVue > WIDTH) {
-            i = idVue / WIDTH;
-            j = idVue % WIDTH;
-        } else if(idVue == WIDTH){
-            i = 1;
-            j = 0;
-
-        } else {
-            i = 0;
-            j = idVue;
-        }
-
-        // Si on est pas sur une mine
-        if (!isMined(idVue)) {
-            // Si on est sur le coin supérieur gauche
-            if (i==0 && j==0){
-                if(isMined(idVue + 1)){
-                    count++;
-                }
-                if(isMined(idVue + WIDTH)){
-                    count++;
-                }
-                if(isMined(idVue + (WIDTH + 1))){
-                    count++;
-                }
-            } else if(i==0 && j==WIDTH-1){
-                if(isMined(idVue - 1)){
-                    count++;
-                }
-                if(isMined(idVue + WIDTH)){
-                    count++;
-                }
-                if(isMined(idVue + (WIDTH - 1))){
-                    count++;
-                }
-            } else if (i==0){
-                if(isMined(idVue + 1)){
-                    count++;
-                }
-                if(isMined(idVue - 1)){
-                    count++;
-                }
-                if(isMined(idVue + (WIDTH + 1))){
-                    count++;
-                }
-                if(isMined(idVue + WIDTH)){
-                    count++;
-                }
-                if(isMined(idVue + (WIDTH - 1))){
-                    count++;
-                }
-            } else if (i == HEIGHT-1 && j == 0){
-                if(isMined(idVue + 1)){
-                    count++;
-                }
-                if(isMined(idVue - (WIDTH - 1))){
-                    count++;
-                }
-                if(isMined(idVue - WIDTH)){
-                    count++;
-                }
-            } else if (i == HEIGHT - 1 && j == WIDTH - 1 ) {
-                if(isMined(idVue - 1)){
-                    count++;
-                }
-                if(isMined(idVue - WIDTH)){
-                    count++;
-                }
-                if(isMined(idVue - (WIDTH + 1))){
-                    count++;
-                }
-            } else if (i == HEIGHT - 1){
-                if(isMined(idVue + 1)){
-                    count++;
-                }
-                if(isMined(idVue - 1)){
-                    count++;
-                }
-                if(isMined(idVue - (WIDTH + 1))){
-                    count++;
-                }
-                if(isMined(idVue - WIDTH)){
-                    count++;
-                }
-                if(isMined(idVue - (WIDTH - 1))){
-                    count++;
-                }
-            } else if (j == 0){
-                if(isMined(idVue + 1)){
-                    count++;
-                }
-                if(isMined(idVue + (WIDTH + 1))){
-                    count++;
-                }
-                if(isMined(idVue + WIDTH)){
-                    count++;
-                }
-                if(isMined(idVue - (WIDTH - 1))){
-                    count++;
-                }
-                if(isMined(idVue - WIDTH)){
-                    count++;
-                }
-            } else if ( j == WIDTH - 1){
-                if(isMined(idVue - 1)){
-                    count++;
-                }
-                if(isMined(idVue - (WIDTH + 1))){
-                    count++;
-                }
-                if(isMined(idVue - WIDTH)){
-                    count++;
-                }
-                if(isMined(idVue + WIDTH)){
-                    count++;
-                }
-                if(isMined(idVue + (WIDTH - 1))){
-                    count++;
-                }
-            } else {
-                if (isMined(idVue + 1)) {
-                    count++;
-                }
-                if (isMined(idVue - 1)) {
-                    count++;
-                }
-                if (isMined(idVue - (WIDTH + 1))) {
-                    count++;
-                }
-                if (isMined(idVue - WIDTH)) {
-                    count++;
-                }
-                if (isMined(idVue - (WIDTH - 1))) {
-                    count++;
-                }
-                if (isMined(idVue + (WIDTH + 1))) {
-                    count++;
-                }
-                if (isMined(idVue + WIDTH)) {
-                    count++;
-                }
-                if (isMined(idVue + (WIDTH - 1))) {
-                    count++;
-                }
-            }
-        }
-
     }
 
     /**
@@ -732,7 +566,7 @@ public class GameOnActivity extends Activity {
             return;
         Locale myLocale = new Locale(lang);
         Locale.setDefault(myLocale);
-        android.content.res.Configuration config = new android.content.res.Configuration();
+        Configuration config = new Configuration();
         config.locale = myLocale;
         getBaseContext().getResources().updateConfiguration(config,getBaseContext().getResources().getDisplayMetrics());
     }
@@ -741,7 +575,7 @@ public class GameOnActivity extends Activity {
         //Tableau de booléen qui determine si les cases sont révélées ou non
         for (int k = 0; k < HEIGHT; k++) {
             for (int l = 0; l < WIDTH; l++) {
-                tabRevealed[k][l] = revealed;
+                tabRevealed[k][l] = false;
             }
         }
     }
@@ -750,7 +584,7 @@ public class GameOnActivity extends Activity {
         //Tableau de booléen qui determine si les cases ont un drapeau ou non
         for (int k = 0; k < HEIGHT; k++) {
             for (int l = 0; l < WIDTH; l++) {
-                tabFlag[k][l] = flagged;
+                tabFlag[k][l] = false;
             }
         }
     }
