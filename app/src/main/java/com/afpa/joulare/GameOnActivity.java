@@ -31,6 +31,7 @@ public class GameOnActivity extends Activity {
     public boolean [][] tabRevealed = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si une case est revelée ou non
     public boolean [][] tabFlag = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si à un drpeau ou non
     public boolean mine = true; // Booléen de case minée ou non
+    public boolean firstClick = false;
 
     public int count = 0;
     public String playerName;
@@ -220,6 +221,12 @@ public class GameOnActivity extends Activity {
 
         // la fonction onClick
         colonne.setOnClickListener(v -> {
+
+            if(firstClick == false){
+                int[] coordinates = getCoordinateFromTileID(colonne.getId());
+                int i = coordinates[0];
+                int j = coordinates[1];
+            }
 
             // On regarde si on a cliqué sur une mine ou non
             if (isMined(colonne.getId())) {
