@@ -1,5 +1,7 @@
 package com.afpa.joulare;
 
+import static java.util.Collections.binarySearch;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -16,9 +18,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Arrays;
 
 public class GameOnActivity extends Activity {
 
@@ -31,7 +36,7 @@ public class GameOnActivity extends Activity {
     public boolean [][] tabRevealed = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si une case est revelée ou non
     public boolean [][] tabFlag = new boolean[HEIGHT][WIDTH]; // Tableau de booléen qui determinera si à un drpeau ou non
     public boolean mine = true; // Booléen de case minée ou non
-    public boolean firstClick = false;
+    public boolean firstClick = true;
 
     public int count = 0;
     public String playerName;
@@ -82,9 +87,6 @@ public class GameOnActivity extends Activity {
         // Display and return player's name
         playerName = displayName();
 
-        // Randomly puts mines
-        mineDistribution();
-
         // Synchronize revealed tiles
         checkTileReveal();
 
@@ -118,8 +120,6 @@ public class GameOnActivity extends Activity {
         // Actions on forfeit button
         clickForfeit();
     }
-
-
 
     /////////////////////////////////////////////////////////////////// Méthodes Applicatives //////////////////////////////////////////////////////////////////////
 
@@ -222,10 +222,20 @@ public class GameOnActivity extends Activity {
         // la fonction onClick
         colonne.setOnClickListener(v -> {
 
-            if(firstClick == false){
+            if(firstClick == true){
                 int[] coordinates = getCoordinateFromTileID(colonne.getId());
-                int i = coordinates[0];
-                int j = coordinates[1];
+                int xFirstClick = coordinates[0];
+                int yFirstClick = coordinates[1];
+
+                forceBlankOnFirstClick();
+                ArrayList<Integer> mustBeBlank = new ArrayList<>();
+                mustBeBlank.add(colonne.getId());
+                mustBeBlank.add(colonne.getId()+1);
+                mustBeBlank.add(colonne.getId()-1);
+
+                // Randomly puts mines
+                mineDistribution(mustBeBlank);
+                firstClick = false;
             }
 
             // On regarde si on a cliqué sur une mine ou non
@@ -278,6 +288,9 @@ public class GameOnActivity extends Activity {
                 Log.i(TAG, "victoire ? " + checkGameWin());
             }
         });
+    }
+
+    private void forceBlankOnFirstClick() {
     }
 
     /**
@@ -333,7 +346,7 @@ public class GameOnActivity extends Activity {
         return tabMine[i][j];
     }
 
-    public void mineDistribution() {
+    public void mineDistribution(ArrayList mustBeBlank) {
         // Tableau de booléen qui determine aléatoirement si une case sera minée ou non.
         while (compteurMine != 0) {
             for (int i = 0; i < HEIGHT; i++) {
@@ -349,7 +362,11 @@ public class GameOnActivity extends Activity {
                 // On va boucler dans la grille en repartissant les bombes aléatoirement jusqu'à arriver à 0
                 for (int j = 0; j < WIDTH; j++) {
                     long random = Math.round(Math.random() * 100);
-                    if (random < mult100 && tabMine[i][j] != mine) {
+                    // On pose les mines
+                    if (random < mult100 && tabMine[i][j] != mine)  {
+                        
+                        
+                        
                         tabMine[i][j] = mine;
                         compteurMine--;
                     } else {
