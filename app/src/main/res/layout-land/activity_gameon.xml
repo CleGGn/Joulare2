@@ -8,7 +8,7 @@
     android:background="@drawable/cloudsland"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    tools:context=".GameOnActivity">
+    tools:context=".Activities.GameOnActivity">
 
     <TextView
         android:id="@+id/title"

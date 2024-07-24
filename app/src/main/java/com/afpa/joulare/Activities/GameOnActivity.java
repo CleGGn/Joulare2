@@ -1,4 +1,4 @@
-package com.afpa.joulare;
+package com.afpa.joulare.Activities;
 
 import static java.util.Collections.binarySearch;
 
@@ -17,13 +17,14 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
+
+import com.afpa.joulare.R;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Arrays;
 
 public class GameOnActivity extends Activity {
 

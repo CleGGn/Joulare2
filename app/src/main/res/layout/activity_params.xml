@@ -8,7 +8,7 @@
     android:background="@drawable/back"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    tools:context=".ParamActivity">
+    tools:context=".Activities.ParamActivity">
 
     <TextView
         android:id="@+id/title"

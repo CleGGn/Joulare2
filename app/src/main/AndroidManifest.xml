@@ -11,7 +11,7 @@
         android:theme="@style/Theme.Joulare"
         android:fullBackupContent="@xml/backup_descriptor">
         <activity
-            android:name=".MainActivity"
+            android:name=".Activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action   android:name="android.intent.action.MAIN" />
@@ -19,29 +19,29 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ParamActivity"
+            android:name=".Activities.ParamActivity"
             android:exported="true" />
 
         <activity
-            android:name=".LangActivity"
+            android:name=".Activities.LangActivity"
             android:exported="true" />
 
         <activity
-            android:name=".RankActivity"
+            android:name=".Activities.RankActivity"
             android:exported="true" />
 
         <activity
-            android:name=".NameActivity"
+            android:name=".Activities.NameActivity"
             android:exported="true" />
 
         <activity
-            android:name=".GameOnActivity"
+            android:name=".Activities.GameOnActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 
         <activity
-            android:name=".VictoryActivity"
+            android:name=".Activities.VictoryActivity"
             android:exported="true" />
     </application>
 </manifest>

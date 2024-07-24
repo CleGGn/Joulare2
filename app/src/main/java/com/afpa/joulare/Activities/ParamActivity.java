@@ -1,28 +1,24 @@
-package com.afpa.joulare;
-
-import androidx.appcompat.app.AppCompatActivity;
+package com.afpa.joulare.Activities;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.afpa.joulare.R;
 
 import java.util.Locale;
 
 
+public class ParamActivity extends AppCompatActivity {
 
-public class MainActivity extends AppCompatActivity {
-
-    public final static String Mes_Prefs = "Mes_Prefs"; // Ref fichier préférences
-    public final static String TAG = "MainActivity"; // Le TAG pour les Log
-    public static MediaPlayer mpInGame = new MediaPlayer();
-
+    public final static String TAG = "ParamActivity"; // Le TAG pour les Log
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,52 +26,22 @@ public class MainActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         loadLocale();
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_params);
 
-        Button play = findViewById(R.id.play);
-        Button rank = findViewById(R.id.rank);
-        Button options = findViewById(R.id.option);
-        Button exit = findViewById(R.id.exit);
+        Button langue = findViewById(R.id.langue);
+        Button retour = findViewById(R.id.retourOptions);
 
-        mpInGame = MediaPlayer.create(getBaseContext(),R.raw.joulare);
-        mpInGame.start();
-
-        play.setOnClickListener(v -> { // Fonction qui lance une nouvelle partie
-            Log.i(TAG, "clicPlay");
-            Intent intent = new Intent(MainActivity.this, NameActivity.class);
-            mpInGame.stop();
+        langue.setOnClickListener(v -> {
+            Log.i(TAG, "clicLang");
+            Intent intent = new Intent(ParamActivity.this, LangActivity.class);
             startActivity(intent);
         });
 
-        rank.setOnClickListener(v -> { // Fonction qui renvoie vers la vue classement
-            Log.i(TAG, "clicRank");
-            Intent intent = new Intent(MainActivity.this, RankActivity.class);
-            startActivity(intent);
-        });
-
-        options.setOnClickListener(v -> { // Fonction qui renvoie vers la vue des options
-            Log.i(TAG, "clicOptions");
-            Intent intent = new Intent(MainActivity.this, ParamActivity.class);
-            startActivity(intent);
-        });
-
-        exit.setOnClickListener(v -> { // Fonction qui quitte l'application
-            Log.i(TAG, "clicExit");
+        retour.setOnClickListener(v -> { // Fonction retour
+            Log.i(TAG, "retourClic");
             finish();
-            System.exit(0);
         });
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mpInGame.start();
-    }
+}
 
     /////////////////////////////////////////////////////////////////// Méthodes Applicatives //////////////////////////////////////////////////////////////////////
 

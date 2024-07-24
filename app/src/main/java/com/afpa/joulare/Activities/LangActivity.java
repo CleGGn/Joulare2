@@ -1,4 +1,4 @@
-package com.afpa.joulare;
+package com.afpa.joulare.Activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -12,6 +12,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.afpa.joulare.R;
 
 import java.util.Locale;
 
